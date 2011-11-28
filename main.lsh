@@ -95,7 +95,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (let ((total-error 0))
     (idx-bloop ((tile x))
       (setq total-error 
-        (+ total-error (idx-sqrdist tile (closest-prototype tile m)))))
+        (+ total-error ((idx-sqrdist tile (closest-prototype tile m))))))
     (/ total-error (idx-dim x 0))))
 
 (de compressed-tiles (input n-prototypes)
