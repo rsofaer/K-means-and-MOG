@@ -171,9 +171,9 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq error-results 
   (all ((n prototype-list)) 
-    (let ((prototypes (pick-prototypes input n-prototypes)))
-          (k-means input prototypes 0.00001)
-          (mean-squared-error input prototypes)
+    (let ((prototypes (pick-prototypes data n-prototypes)))
+          (k-means data prototypes 0.00001)
+          (mean-squared-error data prototypes)
           )))
 (each ((e error-results)(n prototype-list))
   (print (concat "K-means with " (str n) " prototypes resulted in an error of " (str e) ".")))
