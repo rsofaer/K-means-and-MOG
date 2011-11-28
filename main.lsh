@@ -47,12 +47,12 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           ;(print (concat "assigning tile: " (str i) " to prototype: " (str (assignment)) ".  New counter: " (str (counters (assignment)))))
           (idx-add tile (select new-m 0 (assignment)) (select new-m 0 (assignment))))
         ;; Divide prototypes by counters
-        (idx-gloop ((p m)(i))
-            (idx-dotm0 p ((double-matrix) (/ (counters i))) p))
-        (pause "Check out new-m")
-        (idx-copy new-m m)
-        )
-      )
+        (setq converged t)
+        (idx-gloop ((p new-m)(old-p m)(i))
+            (idx-dotm0 p ((double-matrix) (/ (counters i))) p)
+            ;; Check for convergence
+            (when (> (idx-sqrdist p old-p) 0.0000001) (setq converged ())))
+        (idx-copy new-m m)))
     m
     ))
 
