@@ -75,7 +75,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                                   (idx-dim input-set 1)))
         (indicies ()))
     (while (< (length indicies) n-prototypes)
-      (let ((new-i (rand 0 idx-dim input-set 0)))
+      (let ((new-i (rand 0 (idx-dim input-set 0))))
         (when (not (member new-i indicies))
           (nconc1 indicies new-i))))
     (idx-gloop ((v prototypes)(c))
