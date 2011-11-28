@@ -68,8 +68,10 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           )))
       closest-index))
 
+(de closest-prototype (x m)
+  (select m 0 (closest-prototype-index x m)))
+
 ;; Initialize the prototype vectors for k-means
-;; TODO: MAKE SURE THE CHOSEN PROTOTYPES ARE DISTINCT
 (de pick-prototypes (input-set n-prototypes)
   (let ((prototypes (double-matrix n-prototypes 
                                   (idx-dim input-set 1)))
@@ -83,6 +85,25 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
          (idx-copy (select input-set 0 i) v) 
          ))
     prototypes))
+
+;; Calculate the mean-squared error 
+;; for a dataset (x)
+;; and a set of prototypes (m)
+(de mean-squared-error (x m)
+  (let ((total-error 0))
+    (idx-bloop ((tile x))
+      (setq total-error 
+        (+ total-error (idx-sqrdist tile (closest-prototype tile m)))))
+    (/ total-error (idx-dim x 0))))
+
+(de compressed-tiles (input n-prototypes)
+  (let ((prototypes (pick-prototypes input n-prototypes))
+        (output (idx-copy input)))
+        (k-means input prototypes 0.00001)
+        (idx-bloop ((x output))
+          (idx-copy (closest-prototype x prototypes) x))
+        output
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
