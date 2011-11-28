@@ -49,7 +49,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (idx-gloop ((p m)(i))
           (idx-dotm0 p ((double-matrix) (/ (counters i)))))
         (pause "Check out new-m")
-        (setq m new-m)
+        (idx-copy new-m m)
         )
       )
     m
