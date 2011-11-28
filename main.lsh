@@ -112,10 +112,21 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (tiles-to-image (compressed-tiles input n-prototypes) image)
     ))
 
+(de required-bits (input prototypes)
+  (let ((indicies (int-matrix (idx-dim input 0)))
+        (histogram (double-matrix (idx-dim prototypes 0))))
+    (idx-bloop ((x input))
+      (let ((k (closest-prototype-index x prototypes)))
+         ((select indicies 0 k) (+ 1 ((select indicies 0 k))))))
+    (idx-bloop ((i indicies))
+      ((select histogram i) (+ ((select histogram i)) 1 )))
+    (idx-dotm0 histogram ((double-matrix)(/ (idx-dim input 0))))
+    histogram
+    ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; create an array of k Gaussians of dimension n
-(de make-aray-of-gaussians (k n)
+(de make-array-of-gaussians (k n)
   (let ((g (array k)))
     (idx-bloop ((g g)) (g (new gaussian n)))
     g))
