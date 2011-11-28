@@ -104,7 +104,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (k-means input prototypes 0.00001)
         (idx-bloop ((x output))
           (idx-copy (closest-prototype x prototypes) x))
-        output
+        '(output prototypes)
     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
