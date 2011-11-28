@@ -37,12 +37,12 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ;; Assign vectors to prototypes
       (idx-bloop ((tile x) (assignment r))
         (assignment (closest-prototype-index tile m)))
-      (pause)
       ;; Recompute prototypes (checking for convergence)
       ;; Compute new prototypes
       (let ((new-m (double-matrix (idx-dim m 0) (idx-dim m 1)))
             (counters (int-matrix (idx-dim m 0))))
         (idx-bloop ((tile x)(assignment r))
+          (pause "increment counters")
           (incr (counters (assignment)))
           (idx-add tile (new-m (assignment)) (new-m assignment)))
         (pause "Check out new-m")
