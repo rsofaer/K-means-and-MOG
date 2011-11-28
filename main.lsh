@@ -159,4 +159,3 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (load-data)
 (setq prototypes (pick-prototypes data 7))
 (k-means data prototypes 0.00001)
-(pause)
