@@ -122,7 +122,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
          ((select histogram 0 k) (+ 1 ((select histogram 0 k))))))
     (idx-dotm0 histogram ((double-matrix)(/ (idx-dim input 0))) histogram)
     (idx-bloop ((hk histogram))
-      (setq entropy (- entropy (* hk (log2 (hk))))))
+      (setq entropy (- entropy (* (hk) (log2 (hk))))))
     (* entropy (idx-dim input 0))
     ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
