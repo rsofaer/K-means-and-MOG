@@ -1,0 +1,101 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Gaussian Distribution
+;; Yann LeCun, April 2005, November 2005
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(libload "libidx/idx-double")
+(libload "libnum/linalgebra")
+(libload "numerics")
+
+;; define matrix in a way compatible with old and new libnum/linalgebra
+(if inverse-lu-inplace
+    (de matrix-inverse (in out) (inverse-lu-inplace (idx-copy in) out))
+  (de matrix-inverse (in out) (inverse-lu (idx-copy in) out)))
+
+(if determinant-lu-inplace 
+    (de matrix-determinant (in) (determinant-lu-inplace (idx-copy in)))
+  (de matrix-determinant (in) (determinant-lu (idx-copy in))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+#? * gaussian
+;; a Gaussian distribution.
+(defclass gaussian object 
+  mean 					; mean vector
+  covar 				; covariance matrix
+  covar-inverse 			; inverse covariance matrix
+  normalizer			    ; normalization constant
+  )
+
+#? (new gaussian <n> [<m> [<c>]])
+;; create a new gaussian distribution of dimension <n>.
+;; <m> is an optional N-vector for the mean (default value [0 ... 0])
+;; and <c> an optional NxN matrix for the covariance matrix (the 
+;; default value is the identity matrix).
+(defmethod gaussian gaussian (n &optional m c)
+  (setq mean (double-matrix n))
+  (setq covar (double-matrix n n))
+  (setq covar-inverse (double-matrix n n))
+  (when m (==> this set-mean m))
+  (when (not c) (setq c (identity-matrix n 1)))
+  (==> this set-covariance c))
+
+#? (==> <gaussian> set-mean <m>)
+;; set the mean vector of the gaussian to <m>.
+(defmethod gaussian set-mean (m) (idx-copy m mean))
+
+#? (==> <gaussian> set-covariance <c>)
+;; set the covariance matrix of the gaussian to <c>
+(defmethod gaussian set-covariance (c)
+  (idx-copy c covar)
+  ;; compute inverse covariance matrix
+  (matrix-inverse covar covar-inverse)
+  ;; compute normalization constant
+  (setq normalizer 
+	(/ 1 (sqrt (* (** 2pi (idx-dim mean 0)) 
+		      (matrix-determinant (idx-copy covar)))))) ())
+
+#? (==> <gaussian> evaluate <x>)
+;; return the likelihood of vector <x> under the gaussian.
+(defmethod gaussian evaluate (x)
+  (let* ((d (idx-sub x mean)))	; deviation of x from mean
+    ;; compute exponential of quadratic form and normalize
+    (* (exp (* -0.5 (quadratic-form d covar-inverse d))) normalizer))))
+
+
+#? (==> <gaussian> learn <inputs> [<regularizer> [<weights>]])
+;; compute the mean and covariance matrix from a set of vectors
+;; (the maximum likelihood estimates of the parameters).
+;; <inputs> is the PxN matrix of training samples (P vectors of size
+;; N); <regularizer> is an optional regularizing constant. The
+;; diagonal terms of the covariance matrix will be incremented by
+;; <regularizer> to ensure that the covariance matrix is non-singular
+;; (default value is 0). <weights> is an optional vector of size P
+;; that associates a positive weight (or relative importance) to each
+;; training vector. <weights> doesn't need to be normalized.
+(defmethod gaussian learn (inputs &optional (regularizer 0) weights)
+  (let ((n (idx-dim inputs 1))
+	(p (idx-dim inputs 0)))
+    (when (not weights) 
+      (setq weights (double-matrix p))
+      (idx-d1fill weights 1))
+    ;; compute normalization constant (inverse sum of weights)
+    (let ((z (/ 1 ((idx-sum weights)))))
+      ;; compute weighted mean
+      (idx-clear mean)
+      (idx-bloop ((input inputs) (w weights))
+	(idx-m1dotm0acc input w mean))
+      (idx-d1dotc mean z mean)
+      ;; compute weighted covariance matrix
+      (idx-clear covar)
+      (let ((c (matrix n n)))
+	(idx-bloop ((input inputs) (w weights))
+	  (let ((d (idx-sub input mean))) (idx-m1extm1 d d c))
+	  (idx-m1dotm0acc c w covar)))
+      (idx-d2dotc covar z covar))
+    ;; regularize covariance matrix: add the identity matrix
+    ;; multiplied by <regularizer>.
+    (idx-add (identity-matrix n regularizer) covar covar)
+    (==> this set-covariance covar)
+    ()))
+

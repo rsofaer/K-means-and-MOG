@@ -1,0 +1,41 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; A few numerical utilities
+;; Yann LeCun, April 2005
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(libload "libidx/idx-double")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar pi 3.1415927)
+(defvar 2pi (* 2 pi))
+
+;; computes the quadratic form X'AY
+;; where X and Y are N-vectors and A an NxN matrix.
+(de quadratic-form (x a y)
+  ((-idx1- (-double-)) x)
+  ((-idx2- (-double-)) a)
+  ((-idx1- (-double-)) y)
+  (let ((tmp (idx-m2dotm1 a y))) ((idx-dot x tmp))))
+
+;; return an NxN diagonal matrix with
+;; <epsilon> on the diagonal
+(de identity-matrix (n epsilon)
+  ((-int-) n)
+  ((-double-) epsilon)
+  (let ((m (double-matrix n n)))
+    (cidx-bloop ("i" ("m" m)) #{ m[i] = $epsilon; #}) m))
+
+;; normalize a distribution (a vector) so that
+;; the sum of its components is 1.
+(de prob-normalize (x) 
+  ((-idx1- (-double-)) x)
+  (idx-d1dotc x (/ 1 ((idx-sum x))) x) ())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dhc-make ()
+	  quadratic-form
+	  identity-matrix
+	  prob-normalize
+	  )
+
+

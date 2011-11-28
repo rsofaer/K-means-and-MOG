@@ -1,0 +1,133 @@
+p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; K-means and Gaussian Mixture estimation with EM
+;; Yann LeCun, April 2004, November 2005.
+
+(libload "libimage/image-io")
+(libload "image-tiles")
+(libload "gaussian")
+
+;; choose a tile file by uncommenting 
+;; one of the following lines
+
+;; (setq *image-file* "boat.png")
+;; (setq *image-file* "buildings.png")
+;; (setq *image-file* "bird.png")
+(setq *image-file* "airplane.png")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; make tile file and load the tiles 
+;; into global variable matrix "data".
+(de load-data () 
+  (image-to-tiles *image-file* "tiles.mat")
+  (setq data (load-matrix "tiles.mat")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; This function takes an NxM matrix "x" containing
+;; N data vectors of dimension M, and a KxM matrix "m"
+;; which on input contains K initial prototype vectors. 
+;; The function runs the K-means algorithm on the data until 
+;; convergence. Upon completion, "m" contains the K prototypes
+;; calculated by K-means.
+(de k-means (x m)
+  (let ((converged ())
+        (r (int-matrix (idx-dim x 0))));; ri is what prototype xi is assigned to
+    (while (not converged)
+      ;; Assign vectors to prototypes
+      (idx-bloop ((tile x) (assignment r))
+        (assignment (closest-prototype-index tile m)))
+      (pause)
+      ;; Recompute prototypes (checking for convergence)
+      ;; Compute new prototypes
+      (let ((new-m (double-matrix (idx-dim m 0) (idx-dim m 1)))
+            (counters (int-matrix (idx-dim m 0))))
+        (idx-bloop ((tile x)(assignment r))
+          (incr (counters (assignment)))
+          (idx-add tile (new-m (assignment)) (new-m assignment)))
+        (pause "Check out new-m")
+        )
+
+    m
+    ))
+
+;; Find the index in m of the vector in m closest to x
+(de closest-prototype-index (x m)
+    (let ((closest-index 0)
+           (min-dist ((idx-sqrdist x (select m 0 0)))))
+      (idx-gloop ((p m)(i))
+        (let ((cur-dist ((idx-sqrdist p x))))
+         (when (< cur-dist min-dist)
+           (setq min-dist cur-dist)
+           (setq closest-index i)
+          )))
+      closest-index))
+
+;; Initialize the prototype vectors for k-means
+;; TODO: MAKE SURE THE CHOSEN PROTOTYPES ARE DISTINCT
+(de pick-prototypes (input-set n-prototypes)
+  (let ((prototypes (double-matrix n-prototypes 
+                                  (idx-dim input-set 1))))
+    (idx-bloop ((v prototypes))
+       (let ((i (int (rand 0 (idx-dim input-set 0)))))
+         (idx-copy (select input-set 0 i) v) 
+         ))
+    prototypes))
+
+(load-data)
+(setq prototypes (pick-prototypes data 7))
+(k-means data prototypes)
+(pause)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; create an array of k Gaussians of dimension n
+(de make-aray-of-gaussians (k n)
+  (let ((g (array k)))
+    (idx-bloop ((g g)) (g (new gaussian n)))
+    g))
+
+
+;; This function run EM on a gaussian mixture model
+;; with K components.  "x" is an NxM matrix "x" containing
+;; N data vectors of dimension M, "g" is an array of Gaussian 
+;; objects, and "w" is K-dimensional vector containing
+;; the initial mixture weights. On output, "g", and "w" will 
+;; contain the updated Gaussians, and mixture weights of the
+;; mixture of gaussians. The function returns the
+;; negative log-likelihood of the data given the model.
+(de mog-em (x g w)
+  (error "you must implement this function")
+  (let* ((k (idx-dim g 0))
+	 (n (idx-dim x 0))
+	 (r (matrix n k))
+	 (neg-log-likelihood 0)
+	 (converged t))
+    (while (not converged)
+      (mog-e x g w r)
+      (mog-m x g w r)
+      (setq neg-log-likelihood (mog-nll x g w))
+      (setq converged (you-must-put-some-code-here)))
+    neg-log-likelihood))
+
+
+;; This is the E-step of EM
+;; "r" is the matrix of responsabilities.
+(de mog-e (x g w r) 
+  (error "you must implement this function")
+  ())
+
+;; This is the M-step of EM
+;; "r" is the matrix of responsabilities.
+(de mog-m (x g w r) 
+  (error "you must implement this function")
+  ())
+
+;; Return the negative log-likelihood of the data in x
+;; given the Gaussian mixture models in g and the
+;; weights w.
+(de mog-nll (x g w)
+  (error "you must implement this function")
+  ())
+
+

@@ -1,0 +1,149 @@
+Homework Unusupervised Learning: 
+  The K-means algorithm and Mixture of Gaussian 
+  estimation with Expectation-Maximization algorithm.
+
+The purpose of this assignment is to implement the K-means
+algorithm and the Mixture of Gaussians estimation using
+the Expectation-Maximization algorithm.
+
+Your assignment should be sent by email to the TA
+- Send your email in plain text (no msword, no html, no postscript, no pdf).
+- you must implement the code by yourself, but you are 
+  encouraged to discuss your results with other students.
+- Include your source code as attachment(s).
+- modify file main.lsh
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* PART 1: K-means
+
+* QUESTION 1.1: Implementing K-means
+ The K-means algorithm is as follows.
+ Given a set of P training vectors X1...Xp
+ - initialize K prototype vectors P1...Pk
+   by setting each of them to a different
+   randomly chosen training sample
+ - repeat until convergence:
+   - for all i in [1..p], for all j in [1..k],
+     compute the responsabilities 
+     Rij = 1 if Xi is closest to Pj than to any other prototype
+     Rij = 0 otherwise.
+   - recompute the prototypes so that each prototype is
+     equal to the mean of all the samples assigned to it
+     Pj = 1/[sum_i Rij] sum_i Rij.Xi
+
+* QUESTION 1.2: : Applying K-means to Image compression 
+ A simple technique for image compression, called vector quantization,
+ consists in (1) cutting up an image into small non-overlapping tiles
+ (e.g. 8 by 8 pixels), (2) viewing this set of tiles as a dataset of
+ 64-dimensional vectors (each vector component being a pixel) (3)
+ running the K-means algorithm on this dataset (4) coding each tile by
+ a code that represents the index of the nearest prototype to the
+ tile.
+
+ the images in the PNG files in the directory (800x600 pixels, grayscale)
+ were cut up into 7500 non-overlapping, 8x8-pixel tiles. Those tiles 
+ are turned into 64-dimensional vectors (by lining up the pixels in 
+ raster order: left to right and top to bottom), and put together into 
+ the Lush .mat files "tiles.mat". The tiles are in raster order (left 
+ to right, top to bottom), so reconstructing the image consists 
+ in painting those tiles next to each other on a 100 columns by
+ 75 line grid.
+
+ You can pick one of the provided image files by (un)commenting
+ one of the lines that set the *image-file* variable at the beginning 
+ of main.lsh
+
+ Run the K-means algorithm with K=2, 4, 8, 64, 256 on that 
+ set (be careful how you initialize the prototypes).
+ For each size, report the mean-squared error incurred by
+ replacing each tile by its closest prototype, i.e. the
+ average of ||Xi - Tk(i)||^2 over i, where Xi is the i-th tile,
+ and Tk(i) is the prototype (among the K prototypes) that 
+ is closest to Xi.
+
+* QUESTION 1.3: reconstruct the "compressed" test image obtained 
+ with K-256 by replacing each tile by its closest prototype. For 
+ your convenience, a function (tiles-to-image tiles image) is provided 
+ that fills a 600x800 ubyte-matrix <image> from a 7500x64 matrix of 
+ tiles <tiles>. Save the image in a PNG file. Saving a PNG image file 
+ can be done in Lush with 
+ (libload "libimage/image-io")
+ (image-write-ubim "image.png" image) 
+ where image is a 600x800 ubyte-matrix.  Attach the
+ reconstructed image to your homework email.
+
+ NOTE: grayscale and RGB images can be displayed in a 
+ Lush graphic window with
+ (new-window 0 0 800 600 "stuff")
+ (rgb-draw-matrix 0 0 image)
+
+* QUESTION 1.4 
+ for K=8, compute the binary entropy of the sequence of codes for the 
+ whole image: make a integer vector Zi with as many elements as samples 
+ in the dataset, where each component contains the index of the prototype 
+ closest to the corresponding tile [ k(i) ]. Then compute 
+ the normalized histogram of the values in that vector
+ (i.e. a vector Hk where element k is the proportion
+  of elements in Zi that are equal to k (k in [0,7]).
+ Compute the binary entropy of the histogram:
+ Histogram_Entropy = -sum_k Hk*log2[Hk]
+ where log2[x] is the base 2 logarithm of x. This is
+ the average number of bits we would need to specify the
+ index of the prototype of each tile in the image, if we had a 
+ perfect entropy coder to turn those integers into short bit strings 
+ (e.g. an arithmetic coder, such as the Z-coder used in DjVu).
+ The total number of bits we would need to compress the whole image 
+ would by  Number_of_bits = Number_of_tiles*Histogram_Entropy
+ What is it?
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* PART 2: Mixture of Gaussian model and EM
+
+* QUESTION 2.1 Implement EM to estimate the parameters of a Mixture of Gaussians
+
+ NOTE: the Lush code for computing and training a single multivariate 
+   Gaussian is provided in the file gaussian.lsh 
+
+ Given a set of P training vectors X1...Xp
+ the likelihood of the data modeled by a MoG with k 
+ component gaussians is equal to:
+   P(X1...Xp | W1...Wk,M1...Mk,A1...Ak) = product_i sum_j Wj.gaussian(Xi,Mj,Aj)
+   where i ranges over [1,p], and j over [1,k] (k is the
+   number of components in the mixture). gaussian(Xi,Mj,Aj) is
+   a multivariate Gaussian density with mean Mj and covariance matrix 
+   Aj evaluated at point Xi. To ensure normalization, the Wj must be
+   between 0 and 1, and must verify:  sum_j Wj = 1
+
+ The EM algorithm for a MoG is as follows:
+ - initialize K prototype vectors P1...Pk
+   by running the K-means algorithm.
+ - repeat until convergence:
+   - for all i in [1..p], for all j in [1..k],
+     compute the responsabilities 
+     Rij = Wj*gaussian(Xi,Mj,Aj) / sum_h Wh*gaussian(Xi,Mh,Ah)
+   - recompute the parameters of the gaussians:
+     - set Mj to the mean of all the samples *weighted* by their 
+       responsabilities Rij
+     - set Aj to the covariance of all the samples *weighted* by
+       their responsabilities Rij.
+     - set Wj to [sum_i Rij]/[sum_j sum_i Rij]
+
+ MoG trained with EM can be seen as a "soft" version of K-means
+ where the responsabilities are continuous numbers between 0 and
+ 1 (that sum to one over j) instead of being binary.
+
+
+* QUESTION 2.2: Testing EM for a Mixture of Gaussians.  Starting from the
+ result obtained for question 1.2 (result of K-means with K=8 on the
+ tile dataset) train a mixture of Gaussians with 8 components using EM
+ on the tile dataset.  EM finds the parameters that minimize the
+ negative log-likelihood of the dataset given the model: 
+ L = - sum_i log( ModelProb(Xi) ) 
+ Report the initial value of the negative log-likelihood (after running
+ K-means and one M step to compute the covariance matrices, using the
+ binary responsabilities produced by K-means).  and the value at the
+ end of the convergence of EM.
+
