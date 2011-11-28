@@ -41,10 +41,13 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ;; Compute new prototypes
       (let ((new-m (double-matrix (idx-dim m 0) (idx-dim m 1)))
             (counters (int-matrix (idx-dim m 0))))
+        ;; Add vectors to prototypes while incrementing counters
         (idx-bloop ((tile x)(assignment r))
-          (pause "increment counters")
-          (incr (counters (assignment)))
-          (idx-add tile (new-m (assignment)) (new-m assignment)))
+          ((select counters 0 (assignment)) (+ ((select counters 0 (assignment))) 1)); Increment counter
+          (idx-add tile (select new-m 0 (assignment)) (select new-m 0 (assignment))))
+        ;; Divide prototypes by counters
+        (idx-gloop ((p m)(i))
+          (idx-dotm0 p (/ (nth i counters))))
         (pause "Check out new-m")
         )
       )
