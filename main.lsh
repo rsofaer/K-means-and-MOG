@@ -171,7 +171,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setq error-results 
   (all ((n prototype-list)) 
-    (let ((prototypes (pick-prototypes data n-prototypes)))
+    (let ((prototypes (pick-prototypes data n)))
           (k-means data prototypes 0.00001)
           (mean-squared-error data prototypes)
           )))
