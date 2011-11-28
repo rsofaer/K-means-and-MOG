@@ -107,6 +107,11 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         output
     ))
 
+(de compressed-image (input n-prototypes)
+  (let ((image (ubyte-matrix 600 800)))
+    (tiles-to-image (compressed-tiles input n-prototypes) image)
+    ))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; create an array of k Gaussians of dimension n
