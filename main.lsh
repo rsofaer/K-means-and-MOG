@@ -24,6 +24,8 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(de log2 (x) ((-double-) x) (* 1.4426950408889634 (log x)))
+
 ;; This function takes an NxM matrix "x" containing
 ;; N data vectors of dimension M, and a KxM matrix "m"
 ;; which on input contains K initial prototype vectors. 
@@ -113,12 +115,15 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ))
 
 (de required-bits (input prototypes)
-  (let ((histogram (double-matrix (idx-dim prototypes 0))))
+  (let ((histogram (double-matrix (idx-dim prototypes 0)))
+        (entropy 0))
     (idx-bloop ((x input))
       (let ((k (closest-prototype-index x prototypes)))
          ((select histogram 0 k) (+ 1 ((select histogram 0 k))))))
-    (idx-dotm0 histogram ((double-matrix)(/ (idx-dim input 0))))
-    histogram
+    (idx-dotm0 histogram ((double-matrix)(/ (idx-dim input 0))) histogram)
+    (idx-bloop ((hk histogram))
+      (setq entropy (- entropy (* hk (log2 hk)))))
+    (* entropy (idx-dim input 0))
     ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
