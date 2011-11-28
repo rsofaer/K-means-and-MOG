@@ -44,11 +44,11 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Add vectors to prototypes while incrementing counters
         (idx-gloop ((tile x)(assignment r)(i))
           ((select counters 0 (assignment)) (+ ((select counters 0 (assignment))) 1)); Increment counter
-          (print (concat "assigning tile: " (str i) " to prototype: " (str r) ".  New counter: " (str (counters (assignment)))))
+          ;(print (concat "assigning tile: " (str i) " to prototype: " (str (assignment)) ".  New counter: " (str (counters (assignment)))))
           (idx-add tile (select new-m 0 (assignment)) (select new-m 0 (assignment))))
         ;; Divide prototypes by counters
         (idx-gloop ((p m)(i))
-            (idx-dotm0 p ((double-matrix) (/ (counters i)))))
+            (idx-dotm0 p ((double-matrix) (/ (counters i))) p))
         (pause "Check out new-m")
         (idx-copy new-m m)
         )
