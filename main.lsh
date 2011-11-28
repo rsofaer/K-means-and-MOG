@@ -51,7 +51,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (idx-gloop ((p new-m)(old-p m)(i))
             (idx-dotm0 p ((double-matrix) (/ (counters i))) p)
             ;; Check for convergence
-            (when (> (idx-sqrdist p old-p) 0.0000001) (setq converged ())))
+            (when (> (idx-sqrdist p old-p) [@ 0.0000001]) (setq converged ())))
         (idx-copy new-m m)))
     m
     ))
