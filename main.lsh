@@ -47,7 +47,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           (idx-add tile (new-m (assignment)) (new-m assignment)))
         (pause "Check out new-m")
         )
-
+      )
     m
     ))
 
