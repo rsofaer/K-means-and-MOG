@@ -119,7 +119,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (let ((k (closest-prototype-index x prototypes)))
          ((select indicies 0 k) (+ 1 ((select indicies 0 k))))))
     (idx-bloop ((i indicies))
-      ((select histogram i) (+ ((select histogram i)) 1 )))
+      ((select histogram 0 i) (+ ((select histogram 0 i)) 1 )))
     (idx-dotm0 histogram ((double-matrix)(/ (idx-dim input 0))))
     histogram
     ))
@@ -178,15 +178,22 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(setq prototypes (pick-prototypes data 7))
 ;(k-means data prototypes 0.00001)
-(setq prototype-list (list 2 4 8 64 256))
 
-(setq error-results 
-  (all ((n prototype-list)) 
-    (let ((prototypes (pick-prototypes data n)))
-          (k-means data prototypes 0.00001)
-          (mean-squared-error data prototypes)
-          )))
-(each ((e error-results)(n prototype-list))
-  (print (concat "K-means with " (str n) " prototypes resulted in an error of " (str e) ".")))
+;; Question 1.2
+;(setq prototype-list (list 2 4 8 64 256))
+;
+;(setq error-results 
+;  (all ((n prototype-list)) 
+;    (let ((prototypes (pick-prototypes data n)))
+;          (k-means data prototypes 0.00001)
+;          (mean-squared-error data prototypes)
+;          )))
+;(each ((e error-results)(n prototype-list))
+;  (print (concat "K-means with " (str n) " prototypes resulted in an error of " (str e) ".")))
+;
+;(writing "kmeans-errors.bin" (bwrite error-results))
 
-(writing "kmeans-errors.bin" (bwrite error-results))
+;; Question 1.3
+;(image-write-ubim "reconstructed.png" (compressed-image data 256))
+
+;; Question 1.4
