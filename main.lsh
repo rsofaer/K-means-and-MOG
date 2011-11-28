@@ -47,8 +47,9 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           (idx-add tile (select new-m 0 (assignment)) (select new-m 0 (assignment))))
         ;; Divide prototypes by counters
         (idx-gloop ((p m)(i))
-          (idx-dotm0 p (/ (nth i counters))))
+          (idx-dotm0 p ((double-matrix) (/ (counters i)))))
         (pause "Check out new-m")
+        (setq m new-m)
         )
       )
     m
