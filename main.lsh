@@ -113,13 +113,10 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ))
 
 (de required-bits (input prototypes)
-  (let ((indicies (int-matrix (idx-dim input 0)))
-        (histogram (double-matrix (idx-dim prototypes 0))))
+  (let ((histogram (double-matrix (idx-dim prototypes 0))))
     (idx-bloop ((x input))
       (let ((k (closest-prototype-index x prototypes)))
-         ((select indicies 0 k) (+ 1 ((select indicies 0 k))))))
-    (idx-bloop ((i indicies))
-      ((select histogram 0 i) (+ ((select histogram 0 i)) 1 )))
+         ((select histogram 0 k) (+ 1 ((select histogram 0 k))))))
     (idx-dotm0 histogram ((double-matrix)(/ (idx-dim input 0))))
     histogram
     ))
@@ -197,3 +194,5 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;(image-write-ubim "reconstructed.png" (compressed-image data 256))
 
 ;; Question 1.4
+(setq prototypes (pick-prototypes data 8))
+(k-means data prototypes 0.00001)
