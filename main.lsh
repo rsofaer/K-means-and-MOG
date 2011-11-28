@@ -30,7 +30,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The function runs the K-means algorithm on the data until 
 ;; convergence. Upon completion, "m" contains the K prototypes
 ;; calculated by K-means.
-(de k-means (x m)
+(de k-means (x m convergence)
   (let ((converged ())
         (r (int-matrix (idx-dim x 0))));; ri is what prototype xi is assigned to
     (while (not converged)
@@ -51,7 +51,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (idx-gloop ((p new-m)(old-p m)(i))
             (idx-dotm0 p ((double-matrix) (/ (counters i))) p)
             ;; Check for convergence
-            (when (> ((idx-sqrdist p old-p)) 0.0000001) (setq converged ())))
+            (when (> ((idx-sqrdist p old-p)) convergence) (setq converged ())))
         (idx-copy new-m m)))
     m
     ))
@@ -72,17 +72,17 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TODO: MAKE SURE THE CHOSEN PROTOTYPES ARE DISTINCT
 (de pick-prototypes (input-set n-prototypes)
   (let ((prototypes (double-matrix n-prototypes 
-                                  (idx-dim input-set 1))))
-    (idx-bloop ((v prototypes))
-       (let ((i (int (rand 0 (idx-dim input-set 0)))))
+                                  (idx-dim input-set 1)))
+        (indicies ()))
+    (while (< (length indicies) n-prototypes)
+      (let ((new-i (rand 0 idx-dim input-set 0)))
+        (when (not (member new-i indicies))
+          (nconc1 indicies new-i))))
+    (idx-gloop ((v prototypes)(c))
+       (let ((i (nth c indicies)))
          (idx-copy (select input-set 0 i) v) 
          ))
     prototypes))
-
-(load-data)
-(setq prototypes (pick-prototypes data 7))
-(k-means data prototypes)
-(pause)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -135,4 +135,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (error "you must implement this function")
   ())
 
-
+(load-data)
+(setq prototypes (pick-prototypes data 7))
+(k-means data prototypes 0.00001)
+(pause)
