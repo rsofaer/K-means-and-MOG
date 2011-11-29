@@ -115,6 +115,9 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     image
     ))
 
+(de write-compressed (input n-prototypes filename)
+ (image-write-ubim filename (compressed-image input n-prototypes)))
+
 (de required-bits (input prototypes)
   (let ((histogram (double-matrix (idx-dim prototypes 0)))
         (entropy 0))
