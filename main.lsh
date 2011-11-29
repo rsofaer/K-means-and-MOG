@@ -54,9 +54,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Divide prototypes by counters
         (setq converged t)
         (idx-gloop ((p new-m)(old-p m)(i counters))
-            (if (not (= 0 (i))); This line should not be necessary
               (idx-dotm0 p ((double-matrix) (/ (i))) p)
-              (print "Prototype went to zero")) ; goes with the check for 0
             ;; Check for convergence
             (when (> ((idx-sqrdist p old-p)) convergence) (setq converged ())))
         (idx-copy new-m m)))
