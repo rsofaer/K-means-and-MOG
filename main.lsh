@@ -26,6 +26,9 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (de log2 (x) ((-double-) x) (* 1.4426950408889634 (log x)))
 
+;; Divide every element of a vector by the sum of the elements
+(de normalize (x)
+  (idx-dotm0 (/ ((idx-sum x))) x x))
 ;; This function takes an NxM matrix "x" containing
 ;; N data vectors of dimension M, and a KxM matrix "m"
 ;; which on input contains K initial prototype vectors. 
@@ -44,16 +47,16 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (let ((new-m (double-matrix (idx-dim m 0) (idx-dim m 1)))
             (counters (int-matrix (idx-dim m 0))))
         ;; Add vectors to prototypes while incrementing counters
-        (idx-gloop ((tile x)(assignment r)(i))
+        (idx-bloop ((tile x)(assignment r))
           ((select counters 0 (assignment)) (+ ((select counters 0 (assignment))) 1)); Increment counter
           ;(print (concat "assigning tile: " (str i) " to prototype: " (str (assignment)) ".  New counter: " (str (counters (assignment)))))
           (idx-add tile (select new-m 0 (assignment)) (select new-m 0 (assignment))))
         ;; Divide prototypes by counters
         (setq converged t)
-        (idx-gloop ((p new-m)(old-p m)(i))
-            (when (not (= 0 (counters i)))
-              (idx-dotm0 p ((double-matrix) (/ (counters i))) p)
-              )
+        (idx-gloop ((p new-m)(old-p m)(i counters))
+            (when (not (= 0 (i))); This line should not be necessary
+              (idx-dotm0 p ((double-matrix) (/ (i))) p)
+              ) ; goes with the check for 0
             ;; Check for convergence
             (when (> ((idx-sqrdist p old-p)) convergence) (setq converged ())))
         (idx-copy new-m m)))
@@ -68,8 +71,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (let ((cur-dist ((idx-sqrdist p x))))
          (when (< cur-dist min-dist)
            (setq min-dist cur-dist)
-           (setq closest-index i)
-          )))
+           (setq closest-index i))))
       closest-index))
 
 (de closest-prototype (x m)
@@ -143,7 +145,6 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mixture of gaussians. The function returns the
 ;; negative log-likelihood of the data given the model.
 (de mog-em (x g w)
-  (error "you must implement this function")
   (let* ((k (idx-dim g 0))
 	 (n (idx-dim x 0))
 	 (r (matrix n k))
@@ -153,21 +154,45 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       (mog-e x g w r)
       (mog-m x g w r)
       (setq neg-log-likelihood (mog-nll x g w))
-      (setq converged (you-must-put-some-code-here)))
+      (setq converged (error "you must implement convergence calculation")))
     neg-log-likelihood))
 
 
 ;; This is the E-step of EM
 ;; "r" is the matrix of responsabilities.
+;; Set the elements of the responsibility matrix
+;; (r n k (the responsibility of distribution k for data point n))
 (de mog-e (x g w r) 
-  (error "you must implement this function")
-  ())
+  (idx-bloop ((data-row x) (resp-row r)); row is the responsibilities corresponding to one data point
+    (idx-bloop ((cell resp-row)(distribution g)(weight w))
+      ;; Set cell to the responsibility of distribution for row
+      (cell (* weight (==> distribution evaluate data-row))))
+    (normalize resp-row)))
 
 ;; This is the M-step of EM
 ;; "r" is the matrix of responsabilities.
 (de mog-m (x g w r) 
-  (error "you must implement this function")
-  ())
+  (mog-means x g r)
+  (mog-covariances x g r)
+  (mog-weights w r))
+
+(de mog-means (x g r)
+  (idx-gloop ((distribution g)(i))
+    ;; Set the mean of distribution to the sum of the rows of x, weighted by the responsibility
+    (let ((g-resps (select r 1 i)); select one column of responsibilities
+          (mean (double-matrix (idx-dim x 1)))) ; start with a mean of zeros
+      (idx-bloop ((row x) (weight g-resps)) ; iterate through the data and the resps
+          (idx-add mean (idx-dotm0 row weight) mean)) ; add the data weighted by resp
+      )))
+
+(de mog-covariances (x g r)
+  (idx-bloop ((dist g))
+    (==> g learn x r)))
+
+(de mog-weights (w r)
+  (idx-bloop ((weight w) (feature (transpose x)))
+      (weight (idx-sum feature)))
+  (normalize w))
 
 ;; Return the negative log-likelihood of the data in x
 ;; given the Gaussian mixture models in g and the
@@ -199,5 +224,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;(image-write-ubim "reconstructed.png" (compressed-image data 256))
 
 ;; Question 1.4
-(setq prototypes (pick-prototypes data 8))
-(k-means data prototypes 0.00001)
+;(setq prototypes (pick-prototypes data 8))
+;(k-means data prototypes 0.00001)
+;(print (concat (str (required-bits data prototypes)) " bits will be required to write the image."))
+
