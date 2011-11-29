@@ -1,4 +1,4 @@
-p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; K-means and Gaussian Mixture estimation with EM
 ;; Yann LeCun, April 2004, November 2005.
 
@@ -28,7 +28,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Divide every element of a vector by the sum of the elements
 (de normalize (x)
-  (idx-dotm0 (/ ((idx-sum x))) x x))
+  (idx-dotm0 x ((double-matrix) (/ ((idx-sum x)))) x))
 ;; This function takes an NxM matrix "x" containing
 ;; N data vectors of dimension M, and a KxM matrix "m"
 ;; which on input contains K initial prototype vectors. 
@@ -137,6 +137,30 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     (idx-bloop ((g g)) (g (new gaussian n)))
     g))
 
+(de mog-em-wrapper (input n-gaussians)
+    (let ((prototypes (pick-prototypes input n-gaussians))
+          (responsibilities (double-matrix (idx-dim input 0)))
+          (weights (double-matrix n-gaussians))
+          (gaussians (make-array-of-gaussians n-gaussians (idx-dim input 1)))
+           )
+      (k-means input prototypes 0.00001)
+      (idx-bloop ((tile input) (assignment responsibilities))
+        (assignment (closest-prototype-index tile prototypes)))
+      ;; K-means is complete and we have the binary responsibilities
+
+      ;; Set the means of the gaussians to the k-means prototypes
+      (idx-bloop ((p prototypes)(g gaussians))
+                 (==> (g) set-mean p))
+      ;; Set the weights to the normalized sum of the responsibilities
+      (idx-bloop ((r responsibilities))
+        ((select weights 0 (r)) (+ ((select weights 0 (r))) 1)))
+      (normalize weights)
+
+      ;; Do EM
+      (print "Doing EM")
+      (mog-em input gaussians weights)
+          ))
+
 
 ;; This function run EM on a gaussian mixture model
 ;; with K components.  "x" is an NxM matrix "x" containing
@@ -151,12 +175,14 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	 (n (idx-dim x 0))
 	 (r (matrix n k))
 	 (neg-log-likelihood 0)
-	 (converged t))
+	 (converged ()))
     (while (not converged)
       (mog-e x g w r)
       (mog-m x g w r)
+      (setq old-nll neg-log-likelihood)
       (setq neg-log-likelihood (mog-nll x g w))
-      (setq converged (error "you must implement convergence calculation")))
+      (print neg-log-likelihood)
+      (setq converged (< (- old-nll neg-log-likelihood) 0.000001 )))
     neg-log-likelihood))
 
 
@@ -168,8 +194,13 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (idx-bloop ((data-row x) (resp-row r)); row is the responsibilities corresponding to one data point
     (idx-bloop ((cell resp-row)(distribution g)(weight w))
       ;; Set cell to the responsibility of distribution for row
-      (cell (* weight (==> distribution evaluate data-row))))
-    (normalize resp-row)))
+      (print "setting cell")
+      (print (* (weight) (==> (distribution) evaluate data-row)))
+      (cell (* (weight) (==> (distribution) evaluate data-row))))
+    (when (not (= ((idx-sum resp-row)) 0))
+    (normalize resp-row)
+    )
+    ))
 
 ;; This is the M-step of EM
 ;; "r" is the matrix of responsabilities.
@@ -199,9 +230,14 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Return the negative log-likelihood of the data in x
 ;; given the Gaussian mixture models in g and the
 ;; weights w.
+;; L = - sum_i log( ModelProb(Xi) )
+;;     ModelProb(Xi) = sum_j Wj.gaussian(Xi,Mj,Aj)
 (de mog-nll (x g w)
-  (error "you must implement this function")
-  ())
+  (let ((l 0))
+    (idx-bloop ((data-row x))
+      (idx-bloop ((dist g)(weight w))
+        (setq l (- l (log2 (* (weight) (==> dist evaluate x)))))))
+    l))
 
 (load-data)
 
@@ -230,3 +266,4 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;(k-means data prototypes 0.00001)
 ;(print (concat (str (required-bits data prototypes)) " bits will be required to write the image."))
 
+(mog-em-wrapper data 8)
