@@ -112,6 +112,7 @@ p;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (de compressed-image (input n-prototypes)
   (let ((image (ubyte-matrix 600 800)))
     (tiles-to-image (compressed-tiles input n-prototypes) image)
+    image
     ))
 
 (de required-bits (input prototypes)
